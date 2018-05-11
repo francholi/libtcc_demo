@@ -3,6 +3,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include <time.h>
 #include "module_loader.h"
 
@@ -41,6 +42,7 @@ static int gLast_file_entry;
 static void tcc_err_callback(void* err_opaque, const char* msg)
 {
   fprintf(stderr, "%s\n", msg);
+  fflush(NULL);
 };
 
 /*
@@ -97,18 +99,17 @@ int watch_symbol(const char* symbol_name, void** func_pointer, const char* file_
 
 
 /*
- * every_N_frame is the lame/lazy way..., a timer would be better :)
+ * return: 
+ *  0 if no reload
+ *  1 if file reloaded and compiled successful.
  */
-void reload_symbols(int every_N_frame) { 
-  static long long counter = 0;
-  if (counter % every_N_frame != 0)
-    return;
-
+int reload_symbols() { 
   // for each file registered
-  // - compile the file if changed.
-  // - if file has changed, 
-  //   - add global state symbol
-  //   - add any other symbol needed by loaded file (hardcoded for now)
+  // if file changed:
+  // - compile, add symbols, try to relocate.
+  //   - catch some errors here if possible (missing symbols)
+  //   - update function pointers and TCC_State to a new state,
+  //   - destroy previous TCC_State
   //   - get function pointers and match them.
   int file_index = 0;
   while (file_index < MAX_FILE_NAMES && gFile_entries[file_index] != NULL) {
@@ -120,23 +121,21 @@ void reload_symbols(int every_N_frame) {
     int s = stat(entry->file_name, &this_file_stat);
     if (s == -1) {
       fprintf(stderr, "ERROR; file does not exist: %s", entry->file_name);
-      file_index++;
-      continue;
+      return 0;
     };
+
     // file has changed, or never compiled before.
     if (difftime(this_file_stat.st_mtime, entry->modified_time) != 0) {
       // update file stamp
       entry->modified_time = this_file_stat.st_mtime;
 
-
       // read file contents
-      // not sure about this, but I have had issues when I save the file whilst
-      // trying to open it for reading (giving partial reads), so flushing IO has
-      // improved a bit.
-      fflush(NULL);
       // this malloc could be done outside once, if no need for concurrent calls.
       char* file_content = malloc(this_file_stat.st_size);
       FILE* source_file = fopen(entry->file_name, "r");
+      // force filesystem sync // ONLY LINUX.
+      // On windows there is a win32 function for this, I think...
+      syncfs(fileno(source_file));
       size_t read_bytes = fread(file_content, 1, this_file_stat.st_size, source_file);
       file_content[read_bytes - 1] = '\0';
       fclose(source_file);
@@ -155,7 +154,6 @@ void reload_symbols(int every_N_frame) {
         // use the new one. (can be null, if first time, hence the if)
         if (entry->state)
            oldState = entry->state;
-
         entry->state = newState;
 
         // LIBTCC MAGIC HERE.
@@ -168,7 +166,18 @@ void reload_symbols(int every_N_frame) {
         // to add per module basis, not here.
         tcc_add_symbol(entry->state, "recompile_program", recompile_program);
 
-        tcc_relocate(entry->state, TCC_RELOCATE_AUTO);
+        /*
+         * Relocate can fail for instance if we have an invalid symbol
+         * like a function mispelled
+         */
+        if (tcc_relocate(entry->state, TCC_RELOCATE_AUTO) == -1) {
+          entry->state = oldState;
+          tcc_delete(newState);
+          printf("relocate failed\n");
+          fflush(NULL);
+          return 0;
+        }
+
         // remap pointers to functions from the watch list.
         int index_symbol = 0;
         while (entry->symbol_maps[index_symbol] != NULL) {
@@ -189,6 +198,10 @@ void reload_symbols(int every_N_frame) {
         int (*unload_function_ptr)(void) = tcc_get_symbol(entry->state, function_name);
         if (unload_function_ptr != NULL) {
           unload_function_ptr();
+        }
+        else {
+          printf("unload_function_ptr is NULL AFTER compilation, ship is sinking...\n");
+          fflush(NULL);
         };
 
         // now load again
@@ -198,6 +211,10 @@ void reload_symbols(int every_N_frame) {
         if (load_function_ptr != NULL) {
           load_function_ptr();
         }
+        else {
+          printf("load_function_ptr is NULL AFTER compilation, ship is sinking...\n");
+          fflush(NULL);
+        }
 
         // all worked, delete old state (old state can be NULL the first time)
         if (oldState)
@@ -205,13 +222,12 @@ void reload_symbols(int every_N_frame) {
       }
       else {
         // compilation failed!, delete new state
-        fflush(NULL);
         tcc_delete(newState);
       };
       free(file_content);
     };
     file_index++;
   };
-  return;
+  return 1;
 };
 

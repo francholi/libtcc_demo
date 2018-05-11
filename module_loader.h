@@ -10,7 +10,7 @@ typedef enum RUNMODE {
 // typedef TCCState Context;
 
 static void tcc_err_callback(void* err_opaque, const char* msg);
-void reload_symbols(int every_N_frame);
+int reload_symbols();
 int watch_symbol(const char* symbol_name, void** func_pointer, const char* file_name);
 
 // get address of visible variable or function

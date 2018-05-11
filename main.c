@@ -15,9 +15,10 @@
 
 #define HOT_RELOAD
 #ifdef HOT_RELOAD
-#define RELOAD_SYMBOLS reload_symbols(10)
+#define FUNC_CALL(F) { if (F) F(); else printf("Error calling ##F\n"); }
+#define RELOAD_SYMBOLS() if (reload_symbols() == 0) { printf("error reloading symbols\n"); }
 #else
-#define RELOAD_SYMBOLS
+#define RELOAD_SYMBOLS()
 #endif
 
 // this symbol is added to all modules loaded
@@ -43,27 +44,18 @@ int main(int argc, char** argv) {
       watch_symbol("render", (void**)&render, "level0.c");
       watch_symbol("load_level0", (void**)&load_level0, "level0.c");
       watch_symbol("unload_level0", (void**)&unload_level0, "level0.c");
-      // run reload at 10hz, recompile only if the file has changed ofc.
-      reload_symbols(10);
+      RELOAD_SYMBOLS();
     #endif
 
-    // this works with dynamic code, or regular compiled functions
-    // TODO; if null.., something went wrong.
-    if (load_level0)
-      load_level0();
+    FUNC_CALL(load_level0);
 
     while (!glfwWindowShouldClose(gs->glfwWindow) && !quit)
     { 
       // poll events
       glfwPollEvents();
       quit = glfwGetKey(gs->glfwWindow, GLFW_KEY_ESCAPE);
-
-      #ifdef HOT_RELOAD
-        reload_symbols(10);
-      #endif
-
-      render(gs->glfwWindow);
-
+      RELOAD_SYMBOLS();
+      FUNC_CALL(render);
       // present
       glfwSwapBuffers(gs->glfwWindow);
     };

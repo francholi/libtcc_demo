@@ -39,24 +39,25 @@ static GLuint VAO = 0;
 
 static unsigned long long slow_down = 0;
 int render() {
-  if (slow_down % 30 == 0) {
+  if (slow_down++ % 30 == 0) {
     recompile_program("vs.vert", "fs.frag", &vs_shader, &fs_shader, &program);
     glUseProgram(program);
   }
-  glClearColor(1.0, 0.0, 0.0, 1.0);
+  glClearColor(1.0, 1.0, 1.0, 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-  slow_down++;
   return 0;
 };
 
 int load_level0() {
+    globalState->counter++;
     recompile_program("vs.vert", "fs.frag", &vs_shader, &fs_shader, &program);
     glUseProgram(program);
     // dummy VAO to generate gl_VertexID
 		glGenVertexArrays(1, &VAO);
 	  glBindVertexArray(VAO);
+    printf("level0 reloaded %d times\n", globalState->counter);
 };
 
 int unload_level0() {
