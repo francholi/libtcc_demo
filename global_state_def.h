@@ -11,6 +11,7 @@ typedef struct Messenger {} Messenger;
 typedef struct GlobalState {
   Messenger messenger;
   GLFWwindow* glfwWindow;
+  int counter;
 
 } GlobalState;
 
