@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CLionExternalBuildManager">
+    <target id="c19b1d92-43af-46f7-8ffb-71ff79ded451" name="compile with script" projectName="libtcc_demo">
+      <configuration id="3c1bf57a-4641-400a-a679-2eb3fa9b634b" name="compile with script" toolchainName="Default">
+        <build type="TOOL">
+          <tool actionId="Tool_External Tools_compile.sh" />
+        </build>
+        <clean type="TOOL">
+          <tool actionId="Tool_External Tools_clean script" />
+        </clean>
+      </configuration>
+    </target>
+  </component>
+</project>
