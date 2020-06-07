@@ -26,5 +26,5 @@ if [ file_watcher.c -nt file_watcher.o ]; then
 fi
 
 
-cc -g main.c platform.o shader.o file_utils.o file_watcher.o module_loader.o -L. -lm -ltcc -lglfw -lGL -lGLEW -ldl -o main 
+cc -g main.c platform.o shader.o file_utils.o file_watcher.o module_loader.o -L. -lm -lpthread -ltcc -lglfw -lGL -lGLEW -ldl -o main
 

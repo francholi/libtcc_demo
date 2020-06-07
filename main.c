@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <math.h>
-
 #include "platform.h"
 
 #include "global_state_def.h"
 #include "module_loader.h"
+#include "file_watcher.h"
 
 // get POINTERS to functions definitions from here.
 // this is gonna be loaded dynamically
@@ -25,9 +26,19 @@
 GlobalState* gs;
 
 
+void file_changed_callback(const char* filename)
+{
+    fprintf(stderr,"file %s changed!\n", filename);
+}
+
+void file_changed_callback2(const char* filename)
+{
+    fprintf(stderr,"file %s changed 22222222222!\n", filename);
+    fflush(stderr);
+}
+
 static bool quit = false;
 int main(int argc, char** argv) {
-
     // some global state to share around.
     gs = (GlobalState*)malloc(sizeof(GlobalState));
 
