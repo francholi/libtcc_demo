@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="libtcc_demo"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="libtcc_demo">
+				<Option output="/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/libtcc_demo" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/francholi/CLionProjects/libtcc_demo/."/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/include-fixed"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/Makefile&quot;  VERBOSE=1 libtcc_demo"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="libtcc_demo/fast">
+				<Option output="/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/libtcc_demo" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/francholi/CLionProjects/libtcc_demo/."/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/include-fixed"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/Makefile&quot;  VERBOSE=1 libtcc_demo/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/francholi/CLionProjects/libtcc_demo/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/francholi/CLionProjects/libtcc_demo/file_utils.c">
+			<Option target="libtcc_demo"/>
+		</Unit>
+		<Unit filename="/home/francholi/CLionProjects/libtcc_demo/file_utils.h">
+			<Option target="libtcc_demo"/>
+		</Unit>
+		<Unit filename="/home/francholi/CLionProjects/libtcc_demo/file_watcher.c">
+			<Option target="libtcc_demo"/>
+		</Unit>
+		<Unit filename="/home/francholi/CLionProjects/libtcc_demo/file_watcher.h">
+			<Option target="libtcc_demo"/>
+		</Unit>
+		<Unit filename="/home/francholi/CLionProjects/libtcc_demo/global_state_def.h">
+			<Option target="libtcc_demo"/>
+		</Unit>
+		<Unit filename="/home/francholi/CLionProjects/libtcc_demo/level0.c">
+			<Option target="libtcc_demo"/>
+		</Unit>
+		<Unit filename="/home/francholi/CLionProjects/libtcc_demo/level0.h">
+			<Option target="libtcc_demo"/>
+		</Unit>
+		<Unit filename="/home/francholi/CLionProjects/libtcc_demo/libtcc.h">
+			<Option target="libtcc_demo"/>
+		</Unit>
+		<Unit filename="/home/francholi/CLionProjects/libtcc_demo/main.c">
+			<Option target="libtcc_demo"/>
+		</Unit>
+		<Unit filename="/home/francholi/CLionProjects/libtcc_demo/module_loader.c">
+			<Option target="libtcc_demo"/>
+		</Unit>
+		<Unit filename="/home/francholi/CLionProjects/libtcc_demo/module_loader.h">
+			<Option target="libtcc_demo"/>
+		</Unit>
+		<Unit filename="/home/francholi/CLionProjects/libtcc_demo/platform.c">
+			<Option target="libtcc_demo"/>
+		</Unit>
+		<Unit filename="/home/francholi/CLionProjects/libtcc_demo/platform.h">
+			<Option target="libtcc_demo"/>
+		</Unit>
+		<Unit filename="/home/francholi/CLionProjects/libtcc_demo/shader.c">
+			<Option target="libtcc_demo"/>
+		</Unit>
+		<Unit filename="/home/francholi/CLionProjects/libtcc_demo/shader.h">
+			<Option target="libtcc_demo"/>
+		</Unit>
+		<Unit filename="/home/francholi/CLionProjects/libtcc_demo/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

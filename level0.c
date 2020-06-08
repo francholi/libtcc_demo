@@ -22,7 +22,7 @@
 
 #include "level0.h"
 
-extern GlobalState* globalState;
+extern GlobalState* gs;
 
 // every time the program is reloaded (recompiled), these go away!
 // so care must be taken freeing up any resource.
@@ -51,13 +51,13 @@ int render() {
 };
 
 int load_level0() {
-    globalState->counter++;
+    gs->counter++;
     recompile_program("vs.vert", "fs.frag", &vs_shader, &fs_shader, &program);
     glUseProgram(program);
     // dummy VAO to generate gl_VertexID
 		glGenVertexArrays(1, &VAO);
 	  glBindVertexArray(VAO);
-    printf("level0 reloaded %d times\n", globalState->counter);
+    printf("level0 reloaded %d times\n", gs->counter);
 };
 
 int unload_level0() {

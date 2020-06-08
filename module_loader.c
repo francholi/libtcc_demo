@@ -59,7 +59,11 @@ static void tcc_err_callback(void* err_opaque, const char* msg)
  * or do anything else.
  * If called TWICE with the same "name" and different pointer, it will ignore!!
  */
-int watch_symbol(const char* symbol_name, void** func_pointer, const char* filename) {
+int watch_symbol(const char* symbol_name, void** func_pointer, const char* filename, char hotreload) {
+
+    if (hotreload == 0)
+        return 0;
+
     // linear search. find filename.
     int index_file = 0;
     while (index_file < gLast_file_entry && strcmp( gFile_entries[index_file]->filename, filename) != 0) 

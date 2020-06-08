@@ -25,6 +25,15 @@ if [ file_watcher.c -nt file_watcher.o ]; then
     cc -g -c file_watcher.c -o file_watcher.o
 fi
 
+# file_level0.c
+if [ level0.c -nt level0.o ]; then 
+    cc -g -c level0.c -o level0.o
+fi
 
-cc -g main.c platform.o shader.o file_utils.o file_watcher.o module_loader.o -L. -lm -lpthread -ltcc -lglfw -lGL -lGLEW -ldl -o main
+# main.c
+if [ main.c -nt main.o ]; then
+    cc -g -c main.c -o main.o
+fi
+
+cc -g level0.o main.o platform.o shader.o file_utils.o file_watcher.o module_loader.o -L. -lm -lpthread -ltcc -lglfw -lGL -lGLEW -ldl -o main
 
