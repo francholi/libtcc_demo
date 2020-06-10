@@ -1,5 +1,3 @@
-#include "global_state_def.h"
-
 
 // typedef int(*render_level0_ptr)();
 typedef int(*function_pointer)();
