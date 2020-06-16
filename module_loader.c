@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
+
 #include "module_loader.h"
 #include "file_watcher.h"
 #include "file_utils.h"
@@ -59,7 +60,7 @@ static void tcc_err_callback(void* err_opaque, const char* msg)
  * or do anything else.
  * If called TWICE with the same "name" and different pointer, it will ignore!!
  */
-int watch_symbol(const char* symbol_name, void** func_pointer, const char* filename, char hotreload) {
+int register_symbol(const char* symbol_name, void** func_pointer, const char* filename, char hotreload) {
 
     if (hotreload == 0)
         return 0;
@@ -74,7 +75,7 @@ int watch_symbol(const char* symbol_name, void** func_pointer, const char* filen
     // register new file entry if file was not found.
     if (index_file == gLast_file_entry) 
     {
-        FileEntry* f = malloc(sizeof(FileEntry));
+        FileEntry* f = malloc(sizeof(FileEntry)); // TODO: leaking this memory, once per file?
         memset(f, 0, sizeof(FileEntry));
         f->filename = malloc(strlen(filename));
         strcpy( f->filename, filename );
@@ -94,7 +95,7 @@ int watch_symbol(const char* symbol_name, void** func_pointer, const char* filen
     // save symbol name and pointer to function pointer
     if (gFile_entries[index_file]->symbol_maps[index_symbol] == NULL) 
     {
-        SymbolMap* mymap = malloc(sizeof(SymbolMap));
+        SymbolMap* mymap = malloc(sizeof(SymbolMap)); // TODO: leaking again
         mymap->function_name = malloc(strlen(symbol_name));
         strcpy( mymap->function_name, symbol_name);
         mymap->function_pointer = func_pointer;
@@ -104,9 +105,25 @@ int watch_symbol(const char* symbol_name, void** func_pointer, const char* filen
     return 0;
 };
 
+// create a new TCCState, caller MUST release the memory if the
+// return value is not NULL
+TCCState* compile_module(const char* source)
+{
+    TCCState* newState = tcc_new();
+    tcc_set_error_func(newState, NULL, tcc_err_callback); // error callback 
+    tcc_set_output_type(newState, TCC_OUTPUT_MEMORY);     // compilation result to memory
+    int compile_res = tcc_compile_string(newState, source);
+    if (compile_res == -1)
+    {
+        tcc_delete(newState);
+        return NULL; // error compiling
+    }
+    return newState;
+};
+
 /*
  * return: 
- *  0 if no reload
+ * -1 error compiling
  *  1 if file reloaded and compiled successful.
  */
 int reload_symbols() { 
@@ -138,18 +155,17 @@ int reload_symbols() {
                     file_content, 
                     entry->file_stats.st_size);
 
-            // make a new state to TRY and compile the changes, otherwise dispose it and
-            // keep the working copy
-            TCCState* newState = tcc_new();
+            TCCState* newState = compile_module(file_content);
+            if (newState==NULL)
+            {
+                // does not compile!
+                free(file_content);
+                return -1;
+            }
+
             TCCState* oldState = 0;
-            // prepare to compile TO MEMORY, use the newState
-            tcc_set_error_func(newState, NULL, tcc_err_callback);  
-            // compile directly to memory
-            tcc_set_output_type(newState, TCC_OUTPUT_MEMORY);
-            if (tcc_compile_string(newState, file_content) != -1) {
-                // if we managed to compile, destroy previous state,
-                // use the new one. (can be null, if first time, hence the if)
-                if (entry->state)
+
+            if (entry->state == NULL)
                     oldState = entry->state;
                 entry->state = newState;
 

@@ -11,7 +11,7 @@ typedef enum RUNMODE {
 
 static void tcc_err_callback(void* err_opaque, const char* msg);
 int reload_symbols();
-int watch_symbol(const char* symbol_name, void** func_pointer, const char* file_name, char hotreload);
+int register_symbol(const char* symbol_name, void** func_pointer, const char* file_name, char hotreload);
 
 // get address of visible variable or function
 // void* get_symbol( Context* ctx, const char* module_name, const char* symbol_name);

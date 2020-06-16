@@ -20,7 +20,7 @@ typedef struct file_watcher_entry {
 typedef struct file_watcher_ctx
 {
   file_watcher_entry file_entries[MAX_FILE_ENTRIES];
-  unsigned int entry_count;
+  size_t entry_count;
 } file_watcher_ctx;
 
 static file_watcher_ctx g_context;
@@ -100,7 +100,7 @@ int fw_watch(struct file_watcher_ctx* ctx, const char* fname, callback cb)
 
     strncpy(entry.filename,fname,strlen(fname)); 
     ctx->file_entries[ctx->entry_count] = entry; // always append
-    ctx->entry_count++;
+    ctx->entry_count = ctx->entry_count + 1;     // write and thread reads here!
     return 0;
 }
 
