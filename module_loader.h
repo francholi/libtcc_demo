@@ -1,17 +1,12 @@
 #include <libtcc.h>
 #include "global_state_def.h"
 
-typedef enum RUNMODE {
-  ONCE,
-  LOOP,
-  LOOP_RELOAD
-} RUNMODE;
-
-// typedef TCCState Context;
 
 static void tcc_err_callback(void* err_opaque, const char* msg);
 int reload_symbols();
 int register_symbol(const char* symbol_name, void** func_pointer, const char* file_name, char hotreload);
+TCCState* compile_module(const char* source);
+int patch_pointers(const char* filename);
 
 // get address of visible variable or function
 // void* get_symbol( Context* ctx, const char* module_name, const char* symbol_name);

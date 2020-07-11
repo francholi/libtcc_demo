@@ -18,7 +18,7 @@ int syncfs(int fd);
 
 // initialised to 0.
 #define MAX_SYMBOL 200
-#define MAX_FILE_NAMES 50
+#define MAX_FILE_NAMES 100
 
 // keep track of symbol names and symbols pointers.
 typedef struct SymbolMap {
@@ -40,7 +40,7 @@ typedef struct FileEntry {
 // hardcoded number of files, and ofc super inneficient for many files.
 // just a proof of concept.
 static FileEntry* gFile_entries[MAX_FILE_NAMES];
-static int gLast_file_entry;
+static int g_Last_added_file_entry;
 
 // not thread-safe!!
 // callback for compilation errors.
@@ -54,6 +54,8 @@ static void tcc_err_callback(void* err_opaque, const char* msg)
  * Not thread safe.
  * register filename and symbol, so that when reloading the code we can 
  * get a new pointer to the newly loaded function.
+ * Another option would be to gather ALL symbols with some C parser, and reload them
+ * all.
  * Store a double pointer to fix the original function pointer of the caller of this
  * function.
  * This function ONLY registers a file and a pointer to function, does not compile
@@ -62,26 +64,29 @@ static void tcc_err_callback(void* err_opaque, const char* msg)
  */
 int register_symbol(const char* symbol_name, void** func_pointer, const char* filename, char hotreload) {
 
-    if (hotreload == 0)
-        return 0;
+    //if (hotreload == 0)
+    //    return 0;
 
     // linear search. find filename.
     int index_file = 0;
-    while (index_file < gLast_file_entry && strcmp( gFile_entries[index_file]->filename, filename) != 0) 
+    while (index_file < g_Last_added_file_entry && strcmp( gFile_entries[index_file]->filename, filename) != 0) 
     {
         index_file++;
     }
 
     // register new file entry if file was not found.
-    if (index_file == gLast_file_entry) 
+    if (index_file == g_Last_added_file_entry) 
     {
         FileEntry* f = malloc(sizeof(FileEntry)); // TODO: leaking this memory, once per file?
         memset(f, 0, sizeof(FileEntry));
         f->filename = malloc(strlen(filename));
         strcpy( f->filename, filename );
-        // f->file_state = 
+        if (f->file_stats.st_size == 0)
+            file_get_stats(filename, &f->file_stats);
+
         gFile_entries[index_file] = f;
-        gLast_file_entry++;
+        
+        g_Last_added_file_entry++;
     };
 
     // check if symbol is already registered (!=NULL)
@@ -121,127 +126,114 @@ TCCState* compile_module(const char* source)
     return newState;
 };
 
-/*
- * return: 
- * -1 error compiling
- *  1 if file reloaded and compiled successful.
- */
-int reload_symbols() { 
-    // for each file registered
-    // if file changed:
+#define RELOAD_ERR -1
+#define RELOAD_OK   0
+int reload_symbols(const char* filename) { 
     // - compile, add symbols, try to relocate.
-    //   - catch some errors here if possible (missing symbols)
-    //   - update function pointers and TCC_State to a new state,
-    //   - destroy previous TCC_State
-    //   - get function pointers and match them.
+    // - update function pointers and TCC_State to a new state,
+    // - destroy previous TCC_State
+
     int file_index = 0;
     while (file_index < MAX_FILE_NAMES && gFile_entries[file_index] != NULL) {
 
         // a working version of the code.
         FileEntry* entry = gFile_entries[file_index];
 
-        // if file changed, file_stats is updated
-        if (file_changed(entry->filename, &entry->file_stats) == false)
-        {
+        // only reload for this filename
+        if (strcmp( entry->filename, filename)!=0) {
             file_index++;
             continue;
         }
-        else 
+
+        // if file didnt change, this should not be called!
+        //if (file_changed(entry->filename, &entry->file_stats) == false)
+        //{
+        //    file_index++;
+        //    return RELOAD_ERR;
+        //}
+
+        // assuming file has changed, otherwise we wouldnt be calling this func
+        // read file contents
+        char *file_content = malloc(entry->file_stats.st_size);
+        size_t read = file_get_contents(
+            entry->filename,
+            file_content,
+            entry->file_stats.st_size);
+
+        // try to recompile changed module
+        TCCState *newState = compile_module(file_content);
+        if (newState == NULL)
         {
-            // read file contents
-            char* file_content = malloc(entry->file_stats.st_size);
-            size_t read = file_get_contents(
-                    entry->filename, 
-                    file_content, 
-                    entry->file_stats.st_size);
-
-            TCCState* newState = compile_module(file_content);
-            if (newState==NULL)
-            {
-                // does not compile!
-                free(file_content);
-                return -1;
-            }
-
-            TCCState* oldState = 0;
-
-            if (entry->state == NULL)
-                    oldState = entry->state;
-                entry->state = newState;
-
-                // LIBTCC MAGIC HERE.
-                // did not time this, but it is really fast.
-
-                // globalState passed this way seems like a nice alternative to
-                // restore global state in the dynamic code.
-                tcc_add_symbol(entry->state, "globalState", &gs);
-                // this I don't like, I would like a better way to define what symbols
-                // to add per module basis, not here.
-                tcc_add_symbol(entry->state, "recompile_program", recompile_program);
-
-                /*
-                 * Relocate can fail for instance if we have an invalid symbol
-                 * like a function mispelled
-                 */
-                if (tcc_relocate(entry->state, TCC_RELOCATE_AUTO) == -1) {
-                    entry->state = oldState;
-                    tcc_delete(newState);
-                    printf("relocate failed\n");
-                    free(file_content);
-                    fflush(NULL);
-                    return 0;
-                }
-
-                // remap pointers to functions from the watch list.
-                int index_symbol = 0;
-                while (entry->symbol_maps[index_symbol] != NULL) {
-                    *(entry->symbol_maps[index_symbol]->function_pointer) =
-                        tcc_get_symbol(entry->state, entry->symbol_maps[index_symbol]->function_name);
-                    index_symbol++;
-                };
-
-                // Gracefully remove the current module. 
-                // UNLOAD + RELOAD FILE
-                // Executes unload_filename(), then load_filename()
-                // first unload.
-                char function_name[255];
-                memset(function_name, 0, 255);
-                sprintf(function_name, "unload_%s", entry->filename);
-                // force null termination at the colon extension separator to remove ".c"
-                strstr(function_name, ".")[0] = '\0';
-                int (*unload_function_ptr)(void) = tcc_get_symbol(entry->state, function_name);
-                if (unload_function_ptr != NULL) {
-                    unload_function_ptr();
-                }
-                else {
-                    printf("unload_function_ptr is NULL AFTER compilation, ship is sinking...\n");
-                    fflush(NULL);
-                };
-
-                // now load again
-                int (*load_function_ptr)(void) =
-                    tcc_get_symbol(entry->state, function_name + 2);  // unload->[un]load
-
-                if (load_function_ptr != NULL) {
-                    load_function_ptr();
-                }
-                else {
-                    printf("load_function_ptr is NULL AFTER compilation, ship is sinking...\n");
-                    fflush(NULL);
-                }
-
-                // all worked, delete old state (old state can be NULL the first time)
-                if (oldState)
-                    tcc_delete(oldState);
-            }
-            else {
-                // compilation failed!, delete new state
-                tcc_delete(newState);
-            };
+            // did not compile!
             free(file_content);
-        };
+            // TODO: how to report the error
+            return RELOAD_ERR;
+        }
+
+        TCCState *oldState = 0;
+
+        // first time we try to recompile this module??
+        if (entry->state != NULL)
+            oldState = entry->state;
+
+        entry->state = newState;
+
+        // globalState passed this way seems like a nice alternative to
+        // restore global state in the dynamic code. From here I will save
+        // and reload "stuff"
+        tcc_add_symbol(entry->state, "gs", &gs);
+
+        // Relocate can fail for instance if we have an invalid symbol
+        // like a function mispelled
+        if (tcc_relocate(entry->state, TCC_RELOCATE_AUTO) == -1)
+        {
+            entry->state = oldState;
+            tcc_delete(newState);
+            fprintf(stderr, "relocate failed\n");
+            free(file_content);
+            fflush(NULL);
+            return RELOAD_ERR;
+        }
+
+        // here we have succedeed, so delete old state.
+        if (oldState!=NULL)
+            tcc_delete(oldState);
+        free(file_content);
         file_index++;
-    };
-    return 1;
+    }
+    return RELOAD_OK;
 };
 
+// for a given filename, go through each registered symbol and
+// get the new pointers based on the last tcc_state
+// 0 is ok results
+// -1 is not ok
+int patch_pointers(const char* filename) {
+    int file_index = 0;
+    while ( file_index < MAX_FILE_NAMES && 
+            gFile_entries[file_index] != NULL) {
+
+        // a working version of the code.
+        FileEntry* entry = gFile_entries[file_index];
+
+        // only patch for this filename
+        if (strcmp( entry->filename, filename)!=0) {
+            file_index++;
+            continue;
+        }
+
+        // point of no return!, if we reach this point we exit the loop!
+        int index_symbol = 0;
+        while (entry->symbol_maps[index_symbol] != NULL)
+        {
+            // patch symbols
+            *(entry->symbol_maps[index_symbol]->function_pointer) =
+                tcc_get_symbol(
+                    entry->state,
+                    entry->symbol_maps[index_symbol]->function_name);
+            index_symbol++;
+        }
+        return 0;
+    };
+    return -1;
+};

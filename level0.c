@@ -50,6 +50,7 @@ int render() {
   return 0;
 };
 
+/*
 int load_level0() {
     gs->counter++;
     recompile_program("vs.vert", "fs.frag", &vs_shader, &fs_shader, &program);
@@ -69,3 +70,4 @@ int unload_level0() {
     glDeleteProgram( program );
     glDeleteVertexArrays(1, &VAO);
 };
+*/

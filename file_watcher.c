@@ -11,10 +11,10 @@
 
 // keep track of files, timestamps, and a callback per file.
 typedef struct file_watcher_entry {
-    size_t         is_valid; // 0 is invalid, 1 is valid.
-    char         filename[255];
+    size_t is_valid; // 0 is invalid, 1 is valid.
+    char   filename[255];
     struct stat  filestats;
-    callback cb;
+    file_changed_callback cb;
 } file_watcher_entry;
 
 typedef struct file_watcher_ctx
@@ -26,6 +26,7 @@ typedef struct file_watcher_ctx
 static file_watcher_ctx g_context;
 pthread_t watcher_thread;
 
+
 size_t g_stop_thread_flag = 0;
 static void* watch_files_thread(void* data)
 {
@@ -36,9 +37,12 @@ static void* watch_files_thread(void* data)
         for (int f = 0; f < g_context.entry_count; f++)
         {
             struct file_watcher_entry *entry = &g_context.file_entries[f];
-            if (file_changed( entry->filename, &entry->filestats) && (entry->is_valid==1))
+            if (entry->is_valid == 1)
             {
-                entry->cb((void*)entry->filename);
+                if (file_changed(entry->filename, &entry->filestats))
+                {
+                    entry->cb((void *)entry->filename);
+                }
             }
         }
     }
@@ -57,13 +61,13 @@ struct file_watcher_ctx* fw_init()
 }
 
 // return 0 on success, -1 if any error/warning
-int fw_watch(struct file_watcher_ctx* ctx, const char* fname, callback cb)
+int fw_watch(struct file_watcher_ctx* ctx, const char* fname, file_changed_callback cb)
 {
     // check if there are entries available:
     // TODO: Either check for holes (invalid entries) in the range, or reimplement
     if (ctx->entry_count == MAX_FILE_ENTRIES)
     {
-        fprintf(stderr, "FATAL ERROR, NO MORE FILE ENTRIES AVAILABLE, FIX YOUR CODE!\n");
+        fprintf(stderr, "FATAL ERROR, NO MORE FILE ENTRIES AVAILABLE, ADD RESISABLE ARRAY!\n");
         return -1;
     }
 

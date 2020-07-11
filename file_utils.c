@@ -35,8 +35,6 @@ size_t file_get_contents(const char* filename, char* dest, size_t size)
 {
     if (size == 0) {
         size = file_get_size(filename);
-        if (size == 0)
-            return 0;
     }
 
     FILE* fd = fopen(filename, "r");
@@ -45,12 +43,16 @@ size_t file_get_contents(const char* filename, char* dest, size_t size)
         return 0;
     }
     syncfs(fileno(fd)); // only linux!
+
     size_t read_bytes = fread(dest, 1, size, fd);
+    /*
     if (read_bytes != size)
     {
         fprintf(stderr, "Error reading file %s, not all bytes were read\n", filename);
+	fprintf(stderr, "Read: %d; Expected: %d\n", read_bytes, size);
         return 0;
     }
+    */
     dest[read_bytes - 1] = '\0';
     fclose(fd);
     return read_bytes;
